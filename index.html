@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>عالم الأبطال - Heroes World</title>
+<style>
+:root {
+    --bg1: #262350;
+    --bg2: #3a2d6b;
+    --card: #fffaf0;
+    --text: #2d2650;
+    --green: #4caf50;
+    --orange: #ff9800;
+    --blue: #2196f3;
+    --pink: #e91e63;
+    --purple: #9c27b0;
+    --gold: #ffc107;
+    --red: #f44336;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', 'Tahoma', sans-serif;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    min-height: 100vh;
+    color: var(--text);
+    overflow-x: hidden;
+}
+.screen { display: none; min-height: 100vh; padding: 20px; }
+.screen.active { display: block; }
+.card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 20px;
+    margin: 10px auto;
+    max-width: 900px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.btn {
+    border: none;
+    border-radius: 16px;
+    padding: 14px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.1s, opacity 0.2s;
+    margin: 5px;
+}
+.btn:active { transform: scale(0.95); }
+.btn-green { background: var(--green); }
+.btn-orange { background: var(--orange); }
+.btn-blue { background: var(--blue); }
+.btn-pink { background: var(--pink); }
+.btn-purple { background: var(--purple); }
+.btn-red { background: var(--red); }
+.btn-gold { background: var(--gold); color: #372a14; }
+.title {
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    margin: 20px 0;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.subtitle { font-size: 18px; color: rgba(255,255,255,0.8); text-align: center; margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+.game-btn {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.game-btn:hover { transform: translateY(-4px); }
+.game-btn .emoji { font-size: 48px; margin-bottom: 8px; }
+.game-btn .name { font-size: 18px; font-weight: bold; color: var(--text); }
+.stars { font-size: 24px; color: var(--gold); text-align: center; margin: 10px 0; }
+.option-card {
+    background: white;
+    border-radius: 16px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+.option-card:hover { border-color: var(--gold); transform: scale(1.03); }
+.option-card.correct { border-color: var(--green); background: #e8f5e9; }
+.option-card.wrong { border-color: var(--red); background: #ffebee; }
+.result-panel { text-align: center; padding: 30px; }
+.result-panel h2 { font-size: 36px; margin-bottom: 15px; }
+.leaderboard { width: 100%; border-collapse: collapse; margin: 20px 0; }
+.leaderboard th, .leaderboard td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
+.leaderboard th { background: var(--purple); color: white; }
+.leaderboard tr:hover { background: #f5f5f5; }
+.input-field {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    margin: 8px 0;
+    font-family: inherit;
+}
+.input-field:focus { border-color: var(--purple); outline: none; }
+.combo {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    margin: 8px 0;
+    background: white;
+}
+.hidden { display: none; }
+.confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+@media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+    .title { font-size: 24px; }
+    .btn { font-size: 16px; padding: 12px 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ====== Registration Screen ====== -->
+<div id="screen-register" class="screen active">
+    <div class="title">🌟 عالم الأبطال 🌟</div>
+    <div class="subtitle">مرح وتعلّم!</div>
+    <div class="card">
+        <h2 style="text-align:center;margin-bottom:15px;">أدخل بيانات البطل</h2>
+        <input type="text" id="playerName" class="input-field" placeholder="اكتب اسمك هنا يا بطل...">
+        <select id="playerGender" class="combo">
+            <option value="ولد">🦸‍♂️ ولد</option>
+            <option value="بنت">🦸‍♀️ بنت</option>
+        </select>
+        <input type="number" id="playerAge" class="input-field" value="6" min="3" max="12" placeholder="العمر">
+        <select id="playerStage" class="combo">
+            <option value="الروضة">الروضة</option>
+            <option value="التمهيدي">التمهيدي</option>
+            <option value="الأول الابتدائي">الأول الابتدائي</option>
+        </select>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-green" onclick="registerPlayer()">🚀 ابدأ المغامرة</button>
+            <button class="btn btn-gold" onclick="showScreen('screen-scores')">🏆 لوحة النجوم</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== Game Hub ====== -->
+<div id="screen-hub" class="screen">
+    <div class="title">عالم الأبطال</div>
+    <div class="subtitle" id="hubWelcome">أهلاً بك!</div>
+    <div class="grid">
+        <div class="game-btn" onclick="playSound('lettersWelcome'); showScreen('screen-letters')">
+            <div class="emoji">🔤</div>
+            <div class="name">مملكة الحروف</div>
+            <div style="font-size:12px;color:#888;">٢٨ حرفاً بالأصوات والكلمات</div>
+        </div>
+        <div class="game-btn" onclick="playSound('animals'); showScreen('screen-animals')">
+            <div class="name">الحيوانات والفواكه</div>
+            <div style="font-size:12px;color:#888;">استكشف، استمع، ثم العب</div>
+        </div>
+        <div class="game-btn" onclick="playSound('quran'); showScreen('screen-quran')">
+            <div class="name">القرآن الكريم</div>
+            <div style="font-size:12px;color:#888;">اقرأ واستمع وأكمل الآيات</div>
+        </div>
+        <div class="game-btn" onclick="playSound('numbers'); showScreen('screen-numbers')">
+            <div class="emoji">🔢</div>
+            <div class="name">عالم الأرقام</div>
+            <div style="font-size:12px;color:#888;">عدّ الأشياء وتعلّم الأرقام</div>
+        </div>
+        <div class="game-btn" onclick="playSound('colors'); showScreen('screen-colors')">
+            <div class="emoji">🎨</div>
+            <div class="name">الألوان والأشكال</div>
+            <div style="font-size:12px;color:#888;">ميّز واختر بسرعة البرق</div>
+        </div>
+        <div class="game-btn" onclick="playSound('memory'); showScreen('screen-memory')">
+            <div class="emoji">🧠</div>
+            <div class="name">لعبة الذاكرة</div>
+            <div style="font-size:12px;color:#888;">اقلب البطاقات واعثر على الأزواج</div>
+        </div>
+        <div class="game-btn" onclick="playSound('match'); showScreen('screen-match')">
+            <div class="emoji">🔗</div>
+            <div class="name">ربط الأسماء</div>
+            <div style="font-size:12px;color:#888;">اسحب أو انقر لربط الحيوان/الفاكهة/الخضار باسمه</div>
+        </div>
+        <div class="game-btn" onclick="playSound('videos'); showScreen('screen-videos')">
+            <div class="emoji">🎬</div>
+            <div class="name">فيديوهات تعليمية</div>
+            <div style="font-size:12px;color:#888;">شاهد وتعلم</div>
+        </div>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+        <button class="btn btn-gold" onclick="showScreen('screen-scores')">🏆 لوحة النجوم</button>
+        <button class="btn btn-red" onclick="logout()">↩ تغيير البطل</button>
+    </div>
+</div>
+
+<!-- ====== Scores / Leaderboard ====== -->
+<div id="screen-scores" class="screen">
+    <div class="title">🏆 لوحة النجوم</div>
+    <div class="card">
+        <h2 style="text-align:center;" id="scoresPlayerName">البطل: —</h2>
+        <div class="stars" id="scoresStars">⭐ 0 نجمة</div>
+        <div style="text-align:center;margin:10px 0;" id="scoresGames">🎮 0 جولة</div>
+        <table class="leaderboard">
+            <thead><tr><th>المركز</th><th>البطل</th><th>النجوم</th><th>الجولات</th></tr></thead>
+            <tbody id="leaderboardBody"></tbody>
+        </table>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-green" onclick="goBackFromScores()">🏠 العودة</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== Arabic Letters ====== -->
+<div id="screen-letters" class="screen">
+    <div class="title">مملكة الحروف العربية</div>
+    <div class="card">
+        <div style="text-align:center;font-size:80px;margin:20px;" id="letterDisplay">أ</div>
+        <div style="text-align:center;font-size:24px;margin:10px;" id="letterName">الألف</div>
+        <div style="text-align:center;font-size:18px;color:#888;" id="letterWord">أسد 🦁</div>
+        <div style="text-align:center;margin:20px;">
+            <button class="btn btn-blue" onclick="prevLetter()">◀ السابق</button>
+            <button class="btn btn-purple" onclick="speakLetter()">🔊 استمع</button>
+            <button class="btn btn-blue" onclick="nextLetter()">التالي ▶</button>
+            <button class="btn btn-green" onclick="startLettersQuiz()">🎯 التحدي</button>
+        </div>
+        <div id="lettersQuiz" class="hidden">
+            <div style="text-align:center;font-size:20px;margin:15px;" id="lettersPrompt">اختر الحرف: أ</div>
+            <div class="grid" id="lettersOptions"></div>
+            <div style="text-align:center;margin:10px;" id="lettersFeedback"></div>
+            <div style="text-align:center;" id="lettersProgress"></div>
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-red" onclick="showScreen('screen-hub')">↩ رجوع</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== Animals ====== -->
+<div id="screen-animals" class="screen">
+    <div class="title">حديقة الحيوانات والفواكه</div>
+    <div class="card">
+        <div style="display:flex;gap:10px;margin-bottom:15px;justify-content:center;">
+            <button class="btn btn-orange" onclick="selectAnimalCategory('حيوانات')">🦁 حيوانات</button>
+            <button class="btn btn-pink" onclick="selectAnimalCategory('فواكه')">🍎 فواكه</button>
+            <button class="btn btn-green" onclick="selectAnimalCategory('خضار')">🥕 خضار</button>
+        </div>
+        <div style="text-align:center;margin:20px;">
+            <img id="animalImage" src="" alt="" style="max-width:200px;max-height:200px;border-radius:20px;display:none;">
+            <div style="font-size:80px;" id="animalEmoji">🦁</div>
+            <div style="font-size:24px;font-weight:bold;margin:10px;" id="animalName">أسد</div>
+            <div style="font-size:16px;color:#888;" id="animalEnglish">Lion</div>
+            <div style="font-size:14px;margin:10px;padding:10px;background:#f0f0f0;border-radius:12px;" id="animalFact">ملك الغابة</div>
+        </div>
+        <div style="text-align:center;margin:15px;">
+            <button class="btn btn-blue" onclick="prevAnimal()">◀ السابق</button>
+            <button class="btn btn-purple" onclick="speakAnimal()">🔊 استمع</button>
+            <button class="btn btn-blue" onclick="nextAnimal()">التالي ▶</button>
+            <button class="btn btn-green" onclick="startAnimalsQuiz()">🎯 التحدي</button>
+        </div>
+        <div id="animalsQuiz" class="hidden">
+            <div style="text-align:center;font-size:20px;margin:15px;" id="animalsPrompt">اختر:</div>
+            <div class="grid" id="animalsOptions"></div>
+            <div style="text-align:center;margin:10px;" id="animalsFeedback"></div>
+            <div style="text-align:center;" id="animalsProgress"></div>
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-red" onclick="showScreen('screen-hub')">↩ رجوع</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== Quran ====== -->
+<div id="screen-quran" class="screen">
+    <div class="title">روضة القرآن الكريم</div>
+    <div class="card">
+        <div style="display:flex;gap:10px;margin-bottom:15px;justify-content:center;flex-wrap:wrap;" id="surahButtons"></div>
+        <div style="text-align:center;margin:15px;">
+            <button class="btn btn-blue" onclick="prevSurah()">◀ السابق</button>
+            <button class="btn btn-purple" onclick="listenSurah()">🔊 استمع</button>
+            <button class="btn btn-blue" onclick="nextSurah()">التالي ▶</button>
+            <button class="btn btn-green" onclick="startQuranQuiz()">🎯 أكمل الآية</button>
+        </div>
+        <div style="background:#fffaf0;padding:20px;border-radius:16px;margin:15px 0;max-height:300px;overflow-y:auto;font-size:20px;line-height:2;" id="quranVerses"></div>
+        <div id="quranQuiz" class="hidden">
+            <div style="text-align:center;font-size:20px;margin:15px;" id="quranPrompt"></div>
+            <div class="grid" id="quranOptions"></div>
+            <div style="text-align:center;margin:10px;" id="quranFeedback"></div>
+            <div style="text-align:center;" id="quranProgress"></div>
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-red" onclick="showScreen('screen-hub')">↩ رجوع</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== Numbers ====== -->
+<div id="screen-numbers" class="screen">
+    <div class="title">عالم الأرقام</div>
+    <div class="card">
+        <div style="text-align:center;font-size:120px;font-weight:bold;margin:20px;" id="bigNumber">1</div>
+        <div style="text-align:center;font-size:24px;margin:10px;" id="numberName">واحد</div>
+        <div style="text-align:center;font-size:40px;margin:15px;" id="countingObjects">🍎</div>
+        <div style="text-align:center;font-size:18px;color:#888;" id="countWord">عدد الأشياء: 1</div>
+        <div style="text-align:center;margin:20px;">
+            <button class="btn btn-blue" onclick="prevNumber()">◀ السابق</button>
+            <button class="btn btn-purple" onclick="speakNumber()">🔊 استمع</button>
+            <button class="btn btn-blue" onclick="nextNumber()">التالي ▶</button>
+            <button class="btn btn-green" onclick="startNumbersQuiz()">🎯 التحدي</button>
+        </div>
+        <div id="numbersQuiz" class="hidden">
+            <div style="text-align:center;font-size:20px;margin:15px;" id="numbersPrompt"></div>
+            <div class="grid" id="numbersOptions"></div>
+            <div style="text-align:center;margin:10px;" id="numbersFeedback"></div>
+            <div style="text-align:center;" id="numbersProgress"></div>
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-red" onclick="showScreen('screen-hub')">↩ رجوع</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== Colors & Shapes ====== -->
+<div id="screen-colors" class="screen">
+    <div class="title">الألوان والأشكال</div>
+    <div class="card">
+        <div style="display:flex;gap:10px;margin-bottom:15px;justify-content:center;">
+            <button class="btn btn-pink" onclick="selectColorMode('colors')">🎨 ألوان</button>
+            <button class="btn btn-purple" onclick="selectColorMode('shapes')">🔷 أشكال</button>
+        </div>
+        <div id="colorsLearn" style="text-align:center;">
+            <div style="width:260px;height:300px;margin:20px auto;background:#fffaf0;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:100px;" id="colorPreview">🔴</div>
+            <div style="font-size:24px;font-weight:bold;" id="colorName">أحمر</div>
+            <div style="font-size:14px;color:#888;margin:5px;" id="colorEnglish">Red</div>
+            <div style="font-size:14px;margin:10px;padding:10px;background:#f0f0f0;border-radius:12px;" id="colorFact">هذا هو اللون أحمر</div>
+            <div style="margin:15px;">
+                <button class="btn btn-blue" onclick="prevColor()">◀ السابق</button>
+                <button class="btn btn-purple" onclick="speakColor()">🔊 استمع</button>
+                <button class="btn btn-blue" onclick="nextColor()">التالي ▶</button>
+                <button class="btn btn-green" onclick="startColorsQuiz()">🎯 التحدي</button>
+            </div>
+        </div>
+        <div id="colorsQuiz" class="hidden">
+            <div style="text-align:center;font-size:20px;margin:15px;" id="colorsPrompt">اختر اللون: أحمر</div>
+            <div class="grid" id="colorsOptions"></div>
+            <div style="text-align:center;margin:10px;" id="colorsFeedback"></div>
+            <div style="text-align:center;" id="colorsProgress"></div>
+        </div>
+        <div id="colorsResult" class="hidden" style="text-align:center;padding:30px;">
+            <h2 id="colorsResultTitle">أحسنت!</h2>
+            <div class="stars" id="colorsResultStars">⭐ 0 نجمة</div>
+            <button class="btn btn-green" onclick="startColorsQuiz()">🔄 إعادة</button>
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-red" onclick="showScreen('screen-hub')">↩ رجوع</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== Memory Game ====== -->
+<div id="screen-memory" class="screen">
+    <div class="title">لعبة الذاكرة</div>
+    <div class="card">
+        <div style="text-align:center;margin:10px;" id="memoryStats">⭐ 0 | 🔄 0 | ✅ 0</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:600px;margin:20px auto;" id="memoryGrid"></div>
+        <div id="memoryResult" class="hidden" style="text-align:center;padding:20px;">
+            <h2>مبروك!</h2>
+            <div class="stars" id="memoryResultStars">⭐ 0</div>
+            <button class="btn btn-green" onclick="startMemory()">🔄 إعادة</button>
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-red" onclick="showScreen('screen-hub')">↩ رجوع</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== Match Game ====== -->
+<div id="screen-match" class="screen">
+    <div class="title">ربط الأسماء</div>
+    <div class="card">
+        <div style="text-align:center;margin:10px;" id="matchScore">⭐ 0</div>
+        <div style="display:flex;gap:40px;justify-content:center;flex-wrap:wrap;">
+            <div id="matchImages" style="display:flex;flex-direction:column;gap:10px;"></div>
+            <div id="matchNames" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-purple" onclick="startMatch()">🔄 إعادة</button>
+            <button class="btn btn-red" onclick="showScreen('screen-hub')">↩ رجوع</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== Videos ====== -->
+<div id="screen-videos" class="screen">
+    <div class="title">🎬 فيديوهات تعليمية</div>
+    <div class="card">
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:250px;">
+                <h3>قائمة الفيديوهات</h3>
+                <select id="videoSelect" class="combo" style="margin:10px 0;"></select>
+                <button class="btn btn-green" onclick="playVideo()">▶ تشغيل</button>
+                <button class="btn btn-red" onclick="stopVideo()">⏹ إيقاف</button>
+            </div>
+            <div style="flex:2;min-width:300px;">
+                <video id="videoPlayer" controls style="width:100%;border-radius:16px;background:#000;" preload="metadata"></video>
+            </div>
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button class="btn btn-red" onclick="showScreen('screen-hub')">↩ رجوع</button>
+        </div>
+    </div>
+</div>
+
+<script src="video_list.js"></script>
+<script>
+// ====== State ======
+let player = { name: '', gender: 'ولد', age: 6, stage: 'الروضة' };
+let scores = JSON.parse(localStorage.getItem('heroesScores') || '[]');
+let playerGender = player.gender || 'ولد';
+
+// ====== Sound Manager ======
+function isGirl() { return playerGender === 'بنت'; }
+function soundPrefix() { return isGirl() ? 'f_' : 'b_'; }
+
+// Play a sound file, fall back to TTS if not available
+function playSound(key, fallbackText) {
+    const fileMap = {
+        'welcome': isGirl() ? 'f_Wellcome.wav' : 'b_Wellcom_Herroes.wav',
+        'lettersWelcome': isGirl() ? 'f_Wellcome.wav' : 'b_Wellcome.wav',
+        'choose': isGirl() ? 'F_Choose.wav' : 'b_Choose.wav',
+        'letters': soundPrefix() + 'Letters.wav',
+        'animals': soundPrefix() + 'Animals.wav',
+        'quran': soundPrefix() + 'Quran.wav',
+        'numbers': isGirl() ? 'f_Numbers.wav' : 'b_Numbers.wav',
+        'colors': isGirl() ? 'f_Shaps.wav' : 'b_Shaps.wav',
+        'memory': isGirl() ? 'f_Mem.wav' : 'b_Mem.wav',
+        'match': isGirl() ? 'f_Join.wav' : 'b_Join.wav',
+        'videos': isGirl() ? 'f_showV.wav' : 'b_showV.wav',
+        'correct': soundPrefix() + 'Good_Herroe.wav',
+        'wrong': soundPrefix() + 'Wrong.wav',
+        'done': soundPrefix() + 'Done.wav',
+        'welldone': soundPrefix() + 'WellDone.wav',
+        'success': isGirl() ? 'f_success.wav' : 'b_success.wav',
+        'info': isGirl() ? 'f_Wellcome.wav' : 'b_Info.wav',
+        'scores': soundPrefix() + 'WellDone.wav',
+        'star': 'b_success.wav',
+        'pop': 'b_success.wav',
+        'click': 'b_Choose.wav'
+    };
+    const file = fileMap[key];
+    if (file) {
+        const audio = new Audio('Sounds/' + file);
+        audio.play().catch(() => {
+            if (fallbackText) speak(fallbackText);
+        });
+        return;
+    }
+    if (fallbackText) speak(fallbackText);
+}
+
+function playLetterSound(letter) {
+    // Try letter name file first, then letter character
+    const letterNames = {
+        'أ': 'alif', 'ب': 'ba', 'ت': 'ta', 'ث': 'tha', 'ج': 'jeem',
+        'ح': 'ha', 'خ': 'kha', 'د': 'dal', 'ذ': 'thal', 'ر': 'ra',
+        'ز': 'zay', 'س': 'seen', 'ش': 'sheen', 'ص': 'sad', 'ض': 'dad',
+        'ط': 'taa', 'ظ': 'zaa', 'ع': 'ain', 'غ': 'ghain', 'ف': 'fa',
+        'ق': 'qaf', 'ك': 'kaf', 'ل': 'lam', 'م': 'meem', 'ن': 'noon',
+        'ه': 'haa', 'و': 'waw', 'ي': 'ya'
+    };
+    // Try multiple possible filenames
+    const names = [letter, letterNames[letter]].filter(Boolean);
+    for (const name of names) {
+        const audio = new Audio('Sounds/Letters/' + name + '.wav');
+        audio.play().catch(() => {});
+    }
+}
+
+// Play sound and wait for it to finish before speaking
+function playSoundThenSpeak(key, text, delay) {
+    playSound(key);
+    setTimeout(() => speak(text), delay || 1500);
+}
+
+// ====== Navigation ======
+function showScreen(id) {
+    // Stop video if leaving video screen
+    if (id !== 'screen-videos') {
+        const player = document.getElementById('videoPlayer');
+        if (player) { player.pause(); player.src = ''; }
+    }
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'screen-hub') updateHub();
+    if (id === 'screen-scores') updateScores();
+    if (id === 'screen-match') startMatch();
+    if (id === 'screen-videos') loadVideoList();
+}
+
+function registerPlayer() {
+    const name = document.getElementById('playerName').value.trim();
+    if (!name) {
+        // Play info sound as reminder to enter name
+        playSound('info');
+        alert('اكتب اسم البطل أولاً! 😊');
+        return;
+    }
+    player.name = name;
+    player.gender = document.getElementById('playerGender').value;
+    player.age = parseInt(document.getElementById('playerAge').value) || 6;
+    player.stage = document.getElementById('playerStage').value;
+    playerGender = player.gender;
+    localStorage.setItem('heroesPlayer', JSON.stringify(player));
+    showScreen('screen-hub');
+}
+
+function goBackFromScores() {
+    const p = JSON.parse(localStorage.getItem('heroesPlayer') || '{}');
+    if (p.name) {
+        showScreen('screen-hub');
+    } else {
+        showScreen('screen-register');
+    }
+}
+
+function logout() {
+    localStorage.removeItem('heroesPlayer');
+    player = { name: '', gender: 'ولد', age: 6, stage: 'الروضة' };
+    playerGender = 'ولد';
+    document.getElementById('playerName').value = '';
+    document.getElementById('playerGender').value = 'ولد';
+    document.getElementById('playerAge').value = '6';
+    document.getElementById('playerStage').value = 'الروضة';
+    playSound('welcome');
+    showScreen('screen-register');
+}
+
+function updateHub() {
+    const p = JSON.parse(localStorage.getItem('heroesPlayer') || '{}');
+    if (p.name) {
+        player = p;
+        playerGender = p.gender || 'ولد';
+        const isGirl = p.gender === 'بنت';
+        document.getElementById('hubWelcome').textContent = isGirl
+            ? 'أهلاً بكِ يا بطلتنا ' + p.name + ' 🌸 اختاري لعبتك:'
+            : 'أهلاً بك يا بطلنا ' + p.name + ' 🦁 اختر لعبتك:';
+        playSound('choose');
+    }
+}
+
+// ====== Scores ======
+function addScore(section, stars) {
+    const p = JSON.parse(localStorage.getItem('heroesPlayer') || '{}');
+    scores.push({ name: p.name || 'بطل', section, stars, date: new Date().toISOString() });
+    localStorage.setItem('heroesScores', JSON.stringify(scores));
+}
+
+function updateScores() {
+    const p = JSON.parse(localStorage.getItem('heroesPlayer') || '{}');
+    const myScores = scores.filter(s => s.name === (p.name || 'بطل'));
+    const total = myScores.reduce((a, s) => a + s.stars, 0);
+    const games = myScores.length;
+    document.getElementById('scoresPlayerName').textContent = (p.gender === 'بنت' ? 'البطلة: ' : 'البطل: ') + (p.name || 'بطل');
+    document.getElementById('scoresStars').textContent = '⭐ ' + total + ' نجمة';
+    document.getElementById('scoresGames').textContent = '🎮 ' + games + ' جولة';
+
+    // Leaderboard
+    const grouped = {};
+    scores.forEach(s => {
+        if (!grouped[s.name]) grouped[s.name] = { name: s.name, stars: 0, games: 0 };
+        grouped[s.name].stars += s.stars;
+        grouped[s.name].games += 1;
+    });
+    const sorted = Object.values(grouped).sort((a, b) => b.stars - a.stars);
+    const tbody = document.getElementById('leaderboardBody');
+    tbody.innerHTML = '';
+    sorted.forEach((e, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + e.name + '</td><td>' + e.stars + '</td><td>' + e.games + '</td>';
+        tbody.appendChild(tr);
+    });
+}
+
+// ====== Arabic Letters ======
+const letters = [
+    { letter: 'أ', name: 'الألف', word: 'أسد', emoji: '🦁' },
+    { letter: 'ب', name: 'الباء', word: 'بطة', emoji: '🦆' },
+    { letter: 'ت', name: 'التاء', word: 'تفاحة', emoji: '🍎' },
+    { letter: 'ث', name: 'الثاء', word: 'ثعلب', emoji: '🦊' },
+    { letter: 'ج', name: 'الجيم', word: 'جمل', emoji: '🐪' },
+    { letter: 'ح', name: 'الحاء', word: 'حصان', emoji: '🐎' },
+    { letter: 'خ', name: 'الخاء', word: 'خروف', emoji: '🐑' },
+    { letter: 'د', name: 'الدال', word: 'دلفين', emoji: '🐬' },
+    { letter: 'ذ', name: 'الذال', word: 'ذئب', emoji: '🐺' },
+    { letter: 'ر', name: 'الراء', word: 'ريشة', emoji: '🪶' },
+    { letter: 'ز', name: 'الزاي', word: 'زرافة', emoji: '🦒' },
+    { letter: 'س', name: 'السين', word: 'سمكة', emoji: '🐟' },
+    { letter: 'ش', name: 'الشين', word: 'شمس', emoji: '☀️' },
+    { letter: 'ص', name: 'الصاد', word: 'صقر', emoji: '🦅' },
+    { letter: 'ض', name: 'الضاد', word: 'ضفدع', emoji: '🐸' },
+    { letter: 'ط', name: 'الطاء', word: 'طائرة', emoji: '✈️' },
+    { letter: 'ظ', name: 'الظاء', word: 'ظرف', emoji: '✉️' },
+    { letter: 'ع', name: 'العين', word: 'عين', emoji: '👁️' },
+    { letter: 'غ', name: 'الغين', word: 'غيمة', emoji: '☁️' },
+    { letter: 'ف', name: 'الفاء', word: 'فيل', emoji: '🐘' },
+    { letter: 'ق', name: 'القاف', word: 'قمر', emoji: '🌙' },
+    { letter: 'ك', name: 'الكاف', word: 'كتاب', emoji: '📖' },
+    { letter: 'ل', name: 'اللام', word: 'ليمون', emoji: '🍋' },
+    { letter: 'م', name: 'الميم', word: 'موز', emoji: '🍌' },
+    { letter: 'ن', name: 'النون', word: 'نحلة', emoji: '🐝' },
+    { letter: 'ه', name: 'الهاء', word: 'هدهد', emoji: '🐦' },
+    { letter: 'و', name: 'الواو', word: 'وردة', emoji: '🌹' },
+    { letter: 'ي', name: 'الياء', word: 'يد', emoji: '✋' }
+];
+let letterIndex = 0;
+let letterQuestions = [];
+let letterQIndex = 0;
+let letterScore = 0;
+let letterAttempts = 0;
+let letterAnswered = false;
+
+function showLetter(i) {
+    if (i < 0) i = letters.length - 1;
+    if (i >= letters.length) i = 0;
+    letterIndex = i;
+    const l = letters[i];
+    document.getElementById('letterDisplay').textContent = l.letter;
+    document.getElementById('letterName').textContent = l.name;
+    document.getElementById('letterWord').textContent = l.word + ' ' + l.emoji;
+}
+
+function prevLetter() { showLetter(letterIndex - 1); }
+function nextLetter() { showLetter(letterIndex + 1); }
+function speakLetter() {
+    const l = letters[letterIndex];
+    playLetterSound(l.letter);
+}
+
+function startLettersQuiz() {
+    letterQuestions = shuffle([...letters]).slice(0, 8);
+    letterQIndex = 0;
+    letterScore = 0;
+    letterAnswered = false;
+    document.getElementById('lettersQuiz').classList.remove('hidden');
+    showLetterQuestion();
+}
+
+function showLetterQuestion() {
+    if (letterQIndex >= letterQuestions.length) { finishLetters(); return; }
+    letterAttempts = 0;
+    letterAnswered = false;
+    const q = letterQuestions[letterQIndex];
+    document.getElementById('lettersPrompt').textContent = 'اختر الحرف: ' + q.letter;
+    document.getElementById('lettersFeedback').textContent = '';
+    document.getElementById('lettersProgress').textContent = 'السؤال ' + (letterQIndex + 1) + ' من ' + letterQuestions.length;
+    // Build 3 options
+    let opts = shuffle([q, ...shuffle(letters.filter(l => l.letter !== q.letter)).slice(0, 2)]);
+    const cont = document.getElementById('lettersOptions');
+    cont.innerHTML = '';
+    opts.forEach((o, i) => {
+        const card = document.createElement('div');
+        card.className = 'option-card';
+        card.textContent = o.letter;
+        card.onclick = () => checkLetterAnswer(i, o, q, card);
+        cont.appendChild(card);
+    });
+    playLetterSound(q.letter);
+}
+
+function checkLetterAnswer(i, chosen, q, card) {
+    if (letterAnswered) return;
+    if (chosen.letter === q.letter) {
+        letterAnswered = true;
+        const pts = letterAttempts === 0 ? 10 : 5;
+        letterScore += pts;
+        card.classList.add('correct');
+        document.getElementById('lettersFeedback').textContent = 'إجابة رائعة! +' + pts + ' نجوم ⭐';
+        document.getElementById('lettersFeedback').style.color = '#4caf50';
+        playSound('correct', 'أحسنت! ' + q.word + ' تبدأ بحرف ' + q.letterName);
+        setTimeout(() => { letterQIndex++; showLetterQuestion(); }, 1500);
+    } else {
+        letterAttempts++;
+        card.classList.add('wrong');
+        card.style.pointerEvents = 'none';
+        document.getElementById('lettersFeedback').textContent = 'محاولة جيدة! جرّب حرفاً آخر 💪';
+        document.getElementById('lettersFeedback').style.color = '#f44336';
+        playSound('wrong', 'حاول مرة أخرى');
+        if (letterAttempts >= 3) {
+            letterAnswered = true;
+            document.getElementById('lettersFeedback').textContent = 'الإجابة الصحيحة: ' + q.letter;
+            setTimeout(() => { letterQIndex++; showLetterQuestion(); }, 1500);
+        }
+    }
+}
+
+function finishLetters() {
+    addScore('مملكة الحروف', letterScore);
+    playSound('done');
+    document.getElementById('lettersQuiz').innerHTML = '<div class="result-panel"><h2>أحسنت!</h2><div class="stars">⭐ ' + letterScore + ' نجمة</div><button class="btn btn-green" onclick="showScreen(\'screen-hub\')">🏠 العودة</button></div>';
+}
+
+// ====== Animals ======
+const animals = [
+    { word: 'أسد', emoji: '🦁', english: 'Lion', fact: 'ملك الغابة، صوته قوي.', category: 'حيوانات', image: 'lion.png' },
+    { word: 'فيل', emoji: '🐘', english: 'Elephant', fact: 'أكبر حيوان على الأرض.', category: 'حيوانات', image: 'elephant.png' },
+    { word: 'زرافة', emoji: '🦒', english: 'Giraffe', fact: 'أطول حيوان.', category: 'حيوانات', image: 'giraffe.png' },
+    { word: 'قرد', emoji: '🐒', english: 'Monkey', fact: 'ذكي ومرح.', category: 'حيوانات', image: 'monkey.png' },
+    { word: 'حصان', emoji: '🐎', english: 'Horse', fact: 'سريع وقوي.', category: 'حيوانات', image: 'horse.png' },
+    { word: 'جمل', emoji: '🐪', english: 'Camel', fact: 'سفينة الصحراء.', category: 'حيوانات', image: 'camel.png' },
+    { word: 'خروف', emoji: '🐑', english: 'Sheep', fact: 'صوفه دافئ.', category: 'حيوانات', image: 'sheep.png' },
+    { word: 'بقرة', emoji: '🐄', english: 'Cow', fact: 'تعطينا الحليب.', category: 'حيوانات', image: 'cow.png' },
+    { word: 'دجاجة', emoji: '🐔', english: 'Hen', fact: 'تبيض البيض.', category: 'حيوانات', image: 'hen.png' },
+    { word: 'بطة', emoji: '🦆', english: 'Duck', fact: 'تحب الماء.', category: 'حيوانات', image: 'duck.png' },
+    { word: 'نحلة', emoji: '🐝', english: 'Bee', fact: 'تصنع العسل.', category: 'حيوانات', image: 'bee.png' },
+    { word: 'سمكة', emoji: '🐟', english: 'Fish', fact: 'تعيش في الماء.', category: 'حيوانات', image: 'fish.png' },
+    { word: 'أرنب', emoji: '🐰', english: 'Rabbit', fact: 'يأكل الجزر.', category: 'حيوانات', image: 'rabbit.png' },
+    { word: 'عصفور', emoji: '🐦', english: 'Bird', fact: 'يغني في الصباح.', category: 'حيوانات', image: 'bird.png' },
+    { word: 'صقر', emoji: '🦅', english: 'Falcon', fact: 'يطير عالياً.', category: 'حيوانات', image: 'falcon.png' },
+    { word: 'سلحفاة', emoji: '🐢', english: 'Turtle', fact: 'تمشي ببطء.', category: 'حيوانات', image: 'turtle.png' },
+    { word: 'ثعلب', emoji: '🦊', english: 'Fox', fact: 'ذكي وسريع.', category: 'حيوانات', image: 'fox.png' },
+    { word: 'ذئب', emoji: '🐺', english: 'Wolf', fact: 'يعوي في الليل.', category: 'حيوانات', image: 'wolf.png' },
+    { word: 'دلفين', emoji: '🐬', english: 'Dolphin', fact: 'ذكي وودود.', category: 'حيوانات', image: 'dolphin.png' },
+    { word: 'ضفدع', emoji: '🐸', english: 'Frog', fact: 'يقفز عالياً.', category: 'حيوانات', image: 'frog.png' }
+];
+const fruits = [
+    { word: 'تفاحة', emoji: '🍎', english: 'Apple', fact: 'حمراء وحلوة.', category: 'فواكه', image: 'apple.png' },
+    { word: 'موز', emoji: '🍌', english: 'Banana', fact: 'أصفر ولين.', category: 'فواكه', image: 'banana.png' },
+    { word: 'فراولة', emoji: '🍓', english: 'Strawberry', fact: 'صغيرة وحمراء.', category: 'فواكه', image: 'strawberry.png' },
+    { word: 'بطيخ', emoji: '🍉', english: 'Watermelon', fact: 'أخضر من الخارج.', category: 'فواكه', image: 'watermelon.png' },
+    { word: 'طماطم', emoji: '🍅', english: 'Tomato', fact: 'حمراء ومفيدة.', category: 'فواكه', image: 'tomato.png' }
+];
+const vegetables = [
+    { word: 'جزر', emoji: '🥕', english: 'Carrot', fact: 'برتقالي ومقرمش.', category: 'خضار', image: 'carrot.png' },
+    { word: 'خيار', emoji: '🥒', english: 'Cucumber', fact: 'أخضر ومنعش.', category: 'خضار', image: 'cucumber.png' },
+    { word: 'باذنجان', emoji: '🍆', english: 'Eggplant', fact: 'بنفسجي.', category: 'خضار', image: 'eggplant.png' },
+    { word: 'فلفل', emoji: '🌶️', english: 'Pepper', fact: 'ألوانه كثيرة.', category: 'خضار', image: 'pepper.png' },
+    { word: 'ذرة', emoji: '🌽', english: 'Corn', fact: 'حلوة.', category: 'خضار', image: 'corn.png' },
+    { word: 'بروكلي', emoji: '🥦', english: 'Broccoli', fact: 'أخضر ومفيد.', category: 'خضار', image: 'broccoli.png' },
+    { word: 'بطاطس', emoji: '🥔', english: 'Potato', fact: 'نصنع منها بطاطس.', category: 'خضار', image: 'potato.png' },
+    { word: 'بصل', emoji: '🧅', english: 'Onion', fact: 'قد يبكينا.', category: 'خضار', image: 'onion.png' },
+    { word: 'ثوم', emoji: '🧄', english: 'Garlic', fact: 'قوي الرائحة.', category: 'خضار', image: 'garlic.png' },
+    { word: 'خس', emoji: '🥬', english: 'Lettuce', fact: 'أخضر وطازج.', category: 'خضار', image: 'lettuce.png' }
+];
+let animalPool = animals;
+let animalIndex = 0;
+let animalQuestions = [];
+let animalQIndex = 0;
+let animalScore = 0;
+let animalAttempts = 0;
+let animalAnswered = false;
+
+function allAnimals() { return [...animals, ...fruits, ...vegetables]; }
+function selectAnimalCategory(cat) {
+    if (cat === 'حيوانات') animalPool = animals;
+    else if (cat === 'فواكه') animalPool = fruits;
+    else animalPool = vegetables;
+    animalIndex = 0;
+    showAnimal();
+}
+
+function showAnimal() {
+    if (animalPool.length === 0) return;
+    if (animalIndex < 0) animalIndex = animalPool.length - 1;
+    if (animalIndex >= animalPool.length) animalIndex = 0;
+    const c = animalPool[animalIndex];
+    const img = document.getElementById('animalImage');
+    const emoji = document.getElementById('animalEmoji');
+    if (c.image) {
+        img.src = 'Images/' + c.image;
+        img.style.display = 'block';
+        img.onerror = () => { img.style.display = 'none'; emoji.style.display = 'block'; emoji.textContent = c.emoji; };
+        emoji.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        emoji.style.display = 'block';
+        emoji.textContent = c.emoji;
+    }
+    document.getElementById('animalName').textContent = c.word;
+    document.getElementById('animalEnglish').textContent = c.english;
+    document.getElementById('animalFact').textContent = c.fact;
+}
+
+function prevAnimal() { animalIndex--; showAnimal(); }
+function nextAnimal() { animalIndex++; showAnimal(); }
+function speakAnimal() {
+    const c = animalPool[animalIndex];
+    // Try multiple possible sound files
+    const paths = [
+        'Sounds/Animals/' + c.english.toLowerCase() + '.wav',
+        'Sounds/Animals/' + c.word + '.wav',
+        'Sounds/Fruits/' + c.english.toLowerCase() + '.wav',
+        'Sounds/Vegetables/' + c.english.toLowerCase() + '.wav'
+    ];
+    let played = false;
+    for (const path of paths) {
+        const audio = new Audio(path);
+        audio.play().then(() => { played = true; }).catch(() => {});
+    }
+    // Fallback to TTS only if no audio played
+    setTimeout(() => {
+        if (!played) speak('هذا ' + c.word + '. ' + c.fact);
+    }, 500);
+}
+
+function startAnimalsQuiz() {
+    const shuffled = shuffle([...animalPool]);
+    animalQuestions = shuffled.slice(0, Math.min(8, shuffled.length));
+    animalQIndex = 0;
+    animalScore = 0;
+    animalAnswered = false;
+    document.getElementById('animalsQuiz').classList.remove('hidden');
+    showAnimalQuestion();
+}
+
+function showAnimalQuestion() {
+    if (animalQIndex >= animalQuestions.length) { finishAnimals(); return; }
+    animalAttempts = 0;
+    animalAnswered = false;
+    const q = animalQuestions[animalQIndex];
+    document.getElementById('animalsPrompt').textContent = 'أين نجد: ' + q.word + ' ؟';
+    document.getElementById('animalsFeedback').textContent = '';
+    document.getElementById('animalsProgress').textContent = 'السؤال ' + (animalQIndex + 1) + ' من ' + animalQuestions.length;
+    const choices = buildChoices(animalPool, q, 3);
+    const cont = document.getElementById('animalsOptions');
+    cont.innerHTML = '';
+    choices.forEach((c, i) => {
+        const card = document.createElement('div');
+        card.className = 'option-card';
+        if (c.image) {
+            const img = document.createElement('img');
+            img.src = 'Images/' + c.image;
+            img.style.maxWidth = '80px';
+            img.style.maxHeight = '80px';
+            img.onerror = () => { card.textContent = c.emoji + ' ' + c.word; };
+            card.appendChild(img);
+        } else {
+            card.textContent = c.emoji;
+        }
+        card.onclick = () => checkAnimalAnswer(i, c, q, card);
+        cont.appendChild(card);
+    });
+}
+
+function checkAnimalAnswer(i, chosen, q, card) {
+    if (animalAnswered) return;
+    if (chosen.word === q.word) {
+        animalAnswered = true;
+        const pts = animalAttempts === 0 ? 10 : 5;
+        animalScore += pts;
+        card.classList.add('correct');
+        document.getElementById('animalsFeedback').textContent = 'إجابة رائعة! +' + pts + ' نجوم ⭐';
+        document.getElementById('animalsFeedback').style.color = '#4caf50';
+        playSound('correct', 'أحسنت! هذا ' + q.word);
+        setTimeout(() => { animalQIndex++; showAnimalQuestion(); }, 1500);
+    } else {
+        animalAttempts++;
+        card.classList.add('wrong');
+        card.style.pointerEvents = 'none';
+        document.getElementById('animalsFeedback').textContent = 'محاولة جيدة! جرّب another 💪';
+        document.getElementById('animalsFeedback').style.color = '#f44336';
+        playSound('wrong', 'حاول مرة أخرى');
+        if (animalAttempts >= 3) {
+            animalAnswered = true;
+            document.getElementById('animalsFeedback').textContent = 'الإجابة الصحيحة: ' + q.word;
+            setTimeout(() => { animalQIndex++; showAnimalQuestion(); }, 1500);
+        }
+    }
+}
+
+function finishAnimals() {
+    addScore('حديقة الحيوانات والفواكه', animalScore);
+    playSound('done');
+    document.getElementById('animalsQuiz').innerHTML = '<div class="result-panel"><h2>أحسنت!</h2><div class="stars">⭐ ' + animalScore + ' نجمة</div><button class="btn btn-green" onclick="showScreen(\'screen-hub\')">🏠 العودة</button></div>';
+}
+
+// ====== Quran ======
+const surahs = [
+    { name: 'سورة الفاتحة', verses: ['بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ','الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ','الرَّحْمَٰنِ الرَّحِيمِ','مَالِكِ يَوْمِ الدِّينِ','إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ','اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ','صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ'] },
+    { name: 'سورة الإخلاص', verses: ['قُلْ هُوَ اللَّهُ أَحَدٌ','اللَّهُ الصَّمَدُ','لَمْ يَلِدْ وَلَمْ يُولَدْ','وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ'] },
+    { name: 'سورة الفيل', verses: ['أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بأصْحَابِ الْفِيل','أَلَمْ يَجْعَلْ كَيْدَهْمْ فِي تَضْلِيلِ','وَأَرْسَلَ عَلَيْهمْ طَيْرا أَبَابِيل','تَرْمِيهمْ بحِجَارَةٍ مِنْ سِجِّيلِ','فَجَعَلَهُمْ كَعَصْفِ مَأْكُولِ'] },
+    { name: 'سورة الكوثر', verses: ['إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ','فَصَلِّ لِرَبِّكَ وَانْحَرْ','إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ'] },
+    { name: 'سورة العصر', verses: ['وَالْعَصْرِ','إِنَّ الْإِنسَانَ لَفِي خُسْرٍ','إِلَّا الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ وَتَوَاصَوْا بِالْحَقِّ وَتَوَاصَوْا بِالصَّبْرِ'] }
+];
+let currentSurah = 0;
+let currentSurahAudio = null;
+let quranQuestions = [];
+let quranQIndex = 0;
+let quranScore = 0;
+let quranAttempts = 0;
+let quranAnswered = false;
+
+function renderSurahButtons() {
+    const cont = document.getElementById('surahButtons');
+    cont.innerHTML = '';
+    surahs.forEach((s, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-teal';
+        btn.style.fontSize = '12px';
+        btn.style.padding = '8px 12px';
+        btn.textContent = s.name.replace('سورة ', '');
+        btn.onclick = () => selectSurah(i);
+        if (i === currentSurah) btn.style.background = '#ffc107';
+        cont.appendChild(btn);
+    });
+}
+
+function selectSurah(i) {
+    // Stop any playing surah audio
+    if (currentSurahAudio) {
+        currentSurahAudio.pause();
+        currentSurahAudio.currentTime = 0;
+        currentSurahAudio = null;
+    }
+    if (i < 0) i = surahs.length - 1;
+    if (i >= surahs.length) i = 0;
+    currentSurah = i;
+    const s = surahs[i];
+    document.getElementById('lblSurahName')?.setAttribute('data', s.name);
+    let sb = s.name + '\n\n';
+    s.verses.forEach((v, idx) => { sb += v + ' ﴿' + (idx + 1) + '﴾\n\n'; });
+    document.getElementById('quranVerses').textContent = sb;
+    renderSurahButtons();
+}
+
+function prevSurah() { selectSurah(currentSurah - 1); }
+function nextSurah() { selectSurah(currentSurah + 1); }
+function listenSurah() {
+    // Stop any currently playing surah audio
+    if (currentSurahAudio) {
+        currentSurahAudio.pause();
+        currentSurahAudio.currentTime = 0;
+        currentSurahAudio = null;
+    }
+    const s = surahs[currentSurah];
+    // Try to play audio file
+    const audio = new Audio('Sounds/Quran/' + s.name + '.wav');
+    currentSurahAudio = audio;
+    audio.play().catch(() => {
+        // Fallback: speak
+        let text = s.name + '. ';
+        s.verses.forEach(v => text += v + '. ');
+        playSound('quran', text);
+        currentSurahAudio = null;
+    });
+    audio.onended = () => { currentSurahAudio = null; };
+}
+
+function startQuranQuiz() {
+    quranQuestions = buildQuranQuestions();
+    if (quranQuestions.length > 8) quranQuestions = quranQuestions.slice(0, 8);
+    quranQIndex = 0;
+    quranScore = 0;
+    quranAnswered = false;
+    document.getElementById('quranQuiz').classList.remove('hidden');
+    document.getElementById('quranVerses').parentElement.style.display = 'none';
+    showQuranQuestion();
+}
+
+function showQuranQuestion() {
+    if (quranQIndex >= quranQuestions.length) { finishQuran(); return; }
+    quranAttempts = 0;
+    quranAnswered = false;
+    const q = quranQuestions[quranQIndex];
+    document.getElementById('quranPrompt').textContent = q.Prompt;
+    document.getElementById('quranFeedback').textContent = '';
+    document.getElementById('quranProgress').textContent = 'السؤال ' + (quranQIndex + 1) + ' من ' + quranQuestions.length;
+    const cont = document.getElementById('quranOptions');
+    cont.innerHTML = '';
+    q.Options.forEach((o, i) => {
+        const card = document.createElement('div');
+        card.className = 'option-card';
+        card.textContent = o;
+        card.onclick = () => checkQuranAnswer(i, q, card);
+        cont.appendChild(card);
+    });
+    speak(q.Prompt);
+}
+
+function checkQuranAnswer(i, q, card) {
+    if (quranAnswered) return;
+    if (i === q.CorrectIndex) {
+        quranAnswered = true;
+        const pts = quranAttempts === 0 ? 10 : 5;
+        quranScore += pts;
+        card.classList.add('correct');
+        document.getElementById('quranFeedback').textContent = 'ما شاء الله! +' + pts + ' نجوم ⭐';
+        document.getElementById('quranFeedback').style.color = '#4caf50';
+        playSound('correct', q.Options[q.CorrectIndex]);
+        setTimeout(() => { quranQIndex++; showQuranQuestion(); }, 2000);
+    } else {
+        quranAttempts++;
+        card.classList.add('wrong');
+        card.style.pointerEvents = 'none';
+        document.getElementById('quranFeedback').textContent = 'لا بأس، جرّب آية أخرى 💪';
+        document.getElementById('quranFeedback').style.color = '#f44336';
+        playSound('wrong', 'حاول مرة أخرى');
+        if (quranAttempts >= 3) {
+            quranAnswered = true;
+            document.getElementById('quranFeedback').textContent = 'الإجابة الصحيحة: ' + q.Options[q.CorrectIndex];
+            setTimeout(() => { quranQIndex++; showQuranQuestion(); }, 2000);
+        }
+    }
+}
+
+function finishQuran() {
+    addScore('روضة القرآن الكريم', quranScore);
+    playSound('done');
+    document.getElementById('quranQuiz').innerHTML = '<div class="result-panel"><h2>بارك الله فيك!</h2><div class="stars">⭐ ' + quranScore + ' نجمة</div><button class="btn btn-green" onclick="showScreen(\'screen-hub\')">🏠 العودة</button></div>';
+}
+
+function buildQuranQuestions() {
+    const qs = [];
+    surahs.forEach(s => {
+        s.verses.forEach((v, idx) => {
+            if (idx < s.verses.length - 1) {
+                const correct = s.verses[idx + 1];
+                const opts = shuffle([correct, ...shuffle(s.verses.filter(x => x !== correct)).slice(0, 2)]);
+                qs.push({ Prompt: v + ' ﴿' + (idx + 1) + '﴾', Options: opts, CorrectIndex: opts.indexOf(correct) });
+            }
+        });
+    });
+    return shuffle(qs);
+}
+
+// ====== Numbers ======
+let currentNumber = 1;
+let numberQuestions = [];
+let numberQIndex = 0;
+let numberScore = 0;
+let numberAttempts = 0;
+let numberAnswered = false;
+function showNumber(v) {
+    if (v < 1) v = 10;
+    if (v > 10) v = 1;
+    currentNumber = v;
+    const names = ['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة','عشرة'];
+    document.getElementById('bigNumber').textContent = v;
+    document.getElementById('numberName').textContent = names[v];
+    let objs = '';
+    for (let i = 0; i < v; i++) objs += ['🍎','🍌','⭐','🎈','🐟','🌸','🚗','⚽'][i % 8] + ' ';
+    document.getElementById('countingObjects').textContent = objs;
+    document.getElementById('countWord').textContent = 'عدد الأشياء: ' + v;
+}
+function prevNumber() { showNumber(currentNumber - 1); }
+function nextNumber() { showNumber(currentNumber + 1); }
+function speakNumber() {
+    const names = ['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة','عشرة'];
+    // Try number value first, then number name
+    const audio = new Audio('Sounds/Numbers/' + currentNumber + '.wav');
+    audio.play().catch(() => {
+        const audio2 = new Audio('Sounds/Numbers/' + names[currentNumber] + '.wav');
+        audio2.play().catch(() => speak('الرقم ' + currentNumber + ' هو ' + names[currentNumber]));
+    });
+}
+
+function startNumbersQuiz() {
+    numberQuestions = [];
+    for (let i = 0; i < 8; i++) {
+        const correct = Math.floor(Math.random() * 10) + 1;
+        const others = shuffle([1,2,3,4,5,6,7,8,9,10].filter(n => n !== correct)).slice(0, 2);
+        const opts = shuffle([correct, ...others]);
+        numberQuestions.push({ correct, options: opts, correctIndex: opts.indexOf(correct) });
+    }
+    numberQIndex = 0;
+    numberScore = 0;
+    numberAnswered = false;
+    document.getElementById('numbersQuiz').classList.remove('hidden');
+    showNumberQuestion();
+}
+
+function showNumberQuestion() {
+    if (numberQIndex >= numberQuestions.length) { finishNumbers(); return; }
+    numberAttempts = 0;
+    numberAnswered = false;
+    const q = numberQuestions[numberQIndex];
+    document.getElementById('numbersPrompt').textContent = 'اختر الرقم: ' + q.correct;
+    document.getElementById('numbersFeedback').textContent = '';
+    document.getElementById('numbersProgress').textContent = 'السؤال ' + (numberQIndex + 1) + ' من ' + numberQuestions.length;
+    const cont = document.getElementById('numbersOptions');
+    cont.innerHTML = '';
+    q.options.forEach((o, i) => {
+        const card = document.createElement('div');
+        card.className = 'option-card';
+        card.textContent = o;
+        card.onclick = () => checkNumberAnswer(i, o, q, card);
+        cont.appendChild(card);
+    });
+    const names = ['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة','عشرة'];
+    const audio = new Audio('Sounds/Numbers/' + q.correct + '.wav');
+    audio.play().catch(() => {
+        const audio2 = new Audio('Sounds/Numbers/' + names[q.correct] + '.wav');
+        audio2.play().catch(() => playSound('star', 'الرقم ' + q.correct + ' هو ' + names[q.correct]));
+    });
+}
+
+function checkNumberAnswer(i, chosen, q, card) {
+    if (numberAnswered) return;
+    if (chosen === q.correct) {
+        numberAnswered = true;
+        const pts = numberAttempts === 0 ? 10 : 5;
+        numberScore += pts;
+        card.classList.add('correct');
+        document.getElementById('numbersFeedback').textContent = 'إجابة رائعة! +' + pts + ' نجوم ⭐';
+        document.getElementById('numbersFeedback').style.color = '#4caf50';
+        const names = ['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة','عشرة'];
+        const audio = new Audio('Sounds/Numbers/' + q.correct + '.wav');
+        audio.play().catch(() => playSound('correct', 'أحسنت!'));
+        setTimeout(() => { numberQIndex++; showNumberQuestion(); }, 1500);
+    } else {
+        numberAttempts++;
+        card.classList.add('wrong');
+        card.style.pointerEvents = 'none';
+        document.getElementById('numbersFeedback').textContent = 'محاولة جيدة! جرّب رقماً آخر 💪';
+        document.getElementById('numbersFeedback').style.color = '#f44336';
+        playSound('wrong', 'حاول مرة أخرى');
+        if (numberAttempts >= 3) {
+            numberAnswered = true;
+            document.getElementById('numbersFeedback').textContent = 'الإجابة الصحيحة: ' + q.correct;
+            setTimeout(() => { numberQIndex++; showNumberQuestion(); }, 1500);
+        }
+    }
+}
+
+function finishNumbers() {
+    addScore('عالم الأرقام', numberScore);
+    playSound('done');
+    document.getElementById('numbersQuiz').innerHTML = '<div class="result-panel"><h2>أحسنت!</h2><div class="stars">⭐ ' + numberScore + ' نجمة</div><button class="btn btn-green" onclick="showScreen(\'screen-hub\')">🏠 العودة</button></div>';
+}
+
+// ====== Colors & Shapes ======
+let colorMode = 'colors';
+let colorIndex = 0;
+const colors = [
+    { name: 'أحمر', english: 'Red', value: '#e53935' },
+    { name: 'أزرق', english: 'Blue', value: '#1e88e5' },
+    { name: 'أخضر', english: 'Green', value: '#43a047' },
+    { name: 'أصفر', english: 'Yellow', value: '#fdd835' },
+    { name: 'برتقالي', english: 'Orange', value: '#fb8c00' },
+    { name: 'بنفسجي', english: 'Purple', value: '#8e24aa' },
+    { name: 'وردي', english: 'Pink', value: '#ec407a' },
+    { name: 'بني', english: 'Brown', value: '#795548' },
+    { name: 'أسود', english: 'Black', value: '#282828' },
+    { name: 'أبيض', english: 'White', value: '#fafafa' }
+];
+const shapes = [
+    { name: 'دائرة', english: 'Circle', kind: 'circle' },
+    { name: 'مربع', english: 'Square', kind: 'square' },
+    { name: 'مثلث', english: 'Triangle', kind: 'triangle' },
+    { name: 'مستطيل', english: 'Rectangle', kind: 'rectangle' },
+    { name: 'نجمة', english: 'Star', kind: 'star' },
+    { name: 'قلب', english: 'Heart', kind: 'heart' },
+    { name: 'بيضاوي', english: 'Oval', kind: 'oval' },
+    { name: 'معين', english: 'Diamond', kind: 'diamond' }
+];
+let colorQuestions = [];
+let colorQIndex = 0;
+let colorScore = 0;
+let colorAttempts = 0;
+let colorAnswered = false;
+
+function selectColorMode(m) {
+    colorMode = m;
+    colorIndex = 0;
+    document.getElementById('colorsLearn').style.display = 'block';
+    document.getElementById('colorsQuiz').classList.add('hidden');
+    document.getElementById('colorsResult').classList.add('hidden');
+    showColorItem();
+}
+
+function showColorItem() {
+    const arr = colorMode === 'colors' ? colors : shapes;
+    if (colorIndex < 0) colorIndex = arr.length - 1;
+    if (colorIndex >= arr.length) colorIndex = 0;
+    const item = arr[colorIndex];
+    const preview = document.getElementById('colorPreview');
+    if (colorMode === 'colors') {
+        preview.style.background = item.value;
+        preview.textContent = '';
+        document.getElementById('colorName').textContent = item.name;
+        document.getElementById('colorFact').textContent = 'هذا هو اللون ' + item.name;
+    } else {
+        preview.style.background = '#9c27b0';
+        preview.textContent = shapeEmoji(item.kind);
+        document.getElementById('colorName').textContent = item.name;
+        document.getElementById('colorFact').textContent = 'هذا هو شكل ' + item.name;
+    }
+    document.getElementById('colorEnglish').textContent = item.english;
+}
+
+function shapeEmoji(kind) {
+    const map = { circle: '🔵', square: '🟦', triangle: '🔺', rectangle: '▬', star: '⭐', heart: '❤️', oval: '🥚', diamond: '💎' };
+    return map[kind] || '🔷';
+}
+
+function prevColor() { colorIndex--; showColorItem(); }
+function nextColor() { colorIndex++; showColorItem(); }
+function speakColor() {
+    const arr = colorMode === 'colors' ? colors : shapes;
+    const item = arr[colorIndex];
+    if (colorMode === 'colors') {
+        const audio = new Audio('Sounds/Colors/' + item.name + '.wav');
+        audio.play().catch(() => speak('اللون ' + item.name));
+    } else {
+        speak('الشكل ' + item.name);
+    }
+}
+
+function startColorsQuiz() {
+    colorQuestions = shuffle(colorMode === 'colors' ? [...colors] : [...shapes]).slice(0, 8);
+    colorQIndex = 0;
+    colorScore = 0;
+    colorAnswered = false;
+    document.getElementById('colorsLearn').style.display = 'none';
+    document.getElementById('colorsQuiz').classList.remove('hidden');
+    document.getElementById('colorsResult').classList.add('hidden');
+    showColorQuestion();
+}
+
+function showColorQuestion() {
+    if (colorQIndex >= colorQuestions.length) { finishColors(); return; }
+    colorAttempts = 0;
+    colorAnswered = false;
+    const q = colorQuestions[colorQIndex];
+    document.getElementById('colorsPrompt').textContent = 'اختر ' + (colorMode === 'colors' ? 'اللون' : 'الشكل') + ': ' + q.name;
+    document.getElementById('colorsFeedback').textContent = '';
+    document.getElementById('colorsProgress').textContent = 'السؤال ' + (colorQIndex + 1) + ' من ' + colorQuestions.length;
+    const choices = buildChoices(colorMode === 'colors' ? colors : shapes, q, 3);
+    const cont = document.getElementById('colorsOptions');
+    cont.innerHTML = '';
+    choices.forEach((c, i) => {
+        const card = document.createElement('div');
+        card.className = 'option-card';
+        if (colorMode === 'colors') {
+            card.style.background = c.value;
+            card.style.color = c.value === '#fafafa' ? '#333' : 'white';
+            card.textContent = c.name;
+        } else {
+            card.textContent = shapeEmoji(c.kind) + ' ' + c.name;
+        }
+        card.onclick = () => checkColorAnswer(i, c, q, card);
+        cont.appendChild(card);
+    });
+    speak(q.name);
+}
+
+function checkColorAnswer(i, chosen, q, card) {
+    if (colorAnswered) return;
+    if (chosen.name === q.name) {
+        colorAnswered = true;
+        const pts = colorAttempts === 0 ? 10 : 5;
+        colorScore += pts;
+        card.classList.add('correct');
+        document.getElementById('colorsFeedback').textContent = 'إجابة رائعة! +' + pts + ' نجوم ⭐';
+        document.getElementById('colorsFeedback').style.color = '#4caf50';
+        playSound('correct', 'أحسنت! هذا ' + (colorMode === 'colors' ? 'اللون' : 'الشكل') + ' ' + q.name);
+        setTimeout(() => { colorQIndex++; showColorQuestion(); }, 1500);
+    } else {
+        colorAttempts++;
+        card.classList.add('wrong');
+        card.style.pointerEvents = 'none';
+        document.getElementById('colorsFeedback').textContent = 'محاولة جيدة! جرّب another 💪';
+        document.getElementById('colorsFeedback').style.color = '#f44336';
+        playSound('wrong', 'حاول مرة أخرى');
+        if (colorAttempts >= 3) {
+            colorAnswered = true;
+            document.getElementById('colorsFeedback').textContent = 'الإجابة الصحيحة: ' + q.name;
+            setTimeout(() => { colorQIndex++; showColorQuestion(); }, 1500);
+        }
+    }
+}
+
+function finishColors() {
+    addScore('الألوان والأشكال', colorScore);
+    playSound('done');
+    document.getElementById('colorsQuiz').classList.add('hidden');
+    document.getElementById('colorsResult').classList.remove('hidden');
+    document.getElementById('colorsResultTitle').textContent = 'أحسنت!';
+    document.getElementById('colorsResultStars').textContent = '⭐ ' + colorScore + ' نجمة';
+}
+
+// ====== Memory Game ======
+const memoryEmojis = ['🦁','🐘','🦒','🐒','🍎','🍌','🚗','⚽','🌸','🐟'];
+let memoryCards = [];
+let memoryFlipped = [];
+let memoryMatched = 0;
+let memoryMoves = 0;
+let memoryScore = 0;
+
+function startMemory() {
+    const pairs = shuffle([...memoryEmojis]).slice(0, 6);
+    const deck = shuffle([...pairs, ...pairs]);
+    memoryCards = deck.map((e, i) => ({ id: i, emoji: e, flipped: false, matched: false }));
+    memoryFlipped = [];
+    memoryMatched = 0;
+    memoryMoves = 0;
+    memoryScore = 0;
+    document.getElementById('memoryResult').classList.add('hidden');
+    renderMemory();
+}
+
+function renderMemory() {
+    const grid = document.getElementById('memoryGrid');
+    grid.innerHTML = '';
+    memoryCards.forEach((c, i) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'width:100%;aspect-ratio:1;background:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:transform 0.2s;';
+        if (c.matched) { card.style.background = '#e8f5e9'; card.textContent = c.emoji; }
+        else if (c.flipped) { card.textContent = c.emoji; }
+        else { card.textContent = '❓'; card.style.background = '#e0e0e0'; }
+        card.onclick = () => flipMemory(i);
+        grid.appendChild(card);
+    });
+    document.getElementById('memoryStats').textContent = '⭐ ' + memoryScore + ' | 🔄 ' + memoryMoves + ' | ✅ ' + memoryMatched;
+}
+
+function flipMemory(i) {
+    const c = memoryCards[i];
+    if (c.matched || c.flipped || memoryFlipped.length >= 2) return;
+    c.flipped = true;
+    memoryFlipped.push(i);
+    renderMemory();
+    if (memoryFlipped.length === 2) {
+        memoryMoves++;
+        const [a, b] = memoryFlipped;
+        if (memoryCards[a].emoji === memoryCards[b].emoji) {
+            memoryCards[a].matched = true;
+            memoryCards[b].matched = true;
+            memoryMatched++;
+            memoryScore += 10;
+            playSound('correct', 'أحسنت!');
+            setTimeout(() => { memoryFlipped = []; renderMemory(); if (memoryMatched === memoryCards.length / 2) finishMemory(); }, 600);
+        } else {
+            playSound('wrong', 'حاول مرة أخرى');
+            setTimeout(() => { memoryCards[a].flipped = false; memoryCards[b].flipped = false; memoryFlipped = []; renderMemory(); }, 900);
+        }
+    }
+}
+
+function finishMemory() {
+    addScore('لعبة الذاكرة', memoryScore);
+    playSound('done');
+    document.getElementById('memoryResult').classList.remove('hidden');
+    document.getElementById('memoryResultStars').textContent = '⭐ ' + memoryScore;
+}
+
+// ====== Match Game ======
+let matchItems = [];
+let matchNames = [];
+let matchSelected = -1;
+let matchScore = 0;
+let matchDone = false;
+
+function startMatch() {
+    const pool = shuffle([...animals, ...fruits, ...vegetables]).slice(0, 6);
+    matchItems = pool;
+    matchNames = shuffle(pool.map(c => c.word));
+    matchSelected = -1;
+    matchScore = 0;
+    matchDone = false;
+    document.getElementById('matchScore').textContent = '⭐ 0';
+    renderMatch();
+}
+
+function renderMatch() {
+    const imgCont = document.getElementById('matchImages');
+    const nameCont = document.getElementById('matchNames');
+    imgCont.innerHTML = '';
+    nameCont.innerHTML = '';
+    matchItems.forEach((c, i) => {
+        const div = document.createElement('div');
+        div.style.cssText = 'width:100px;height:100px;background:white;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);border:3px solid transparent;';
+        if (c.image) {
+            const img = document.createElement('img');
+            img.src = 'Images/' + c.image;
+            img.style.maxWidth = '80px';
+            img.style.maxHeight = '80px';
+            img.onerror = () => { div.textContent = c.emoji; };
+            div.appendChild(img);
+        } else {
+            div.textContent = c.emoji;
+            div.style.fontSize = '40px';
+        }
+        div.onclick = () => selectMatchImage(i);
+        imgCont.appendChild(div);
+    });
+    matchNames.forEach((name, i) => {
+        const div = document.createElement('div');
+        div.style.cssText = 'width:180px;height:50px;background:#2196f3;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);';
+        div.textContent = name;
+        div.onclick = () => selectMatchName(i);
+        nameCont.appendChild(div);
+    });
+}
+
+function selectMatchImage(i) {
+    if (matchDone) return;
+    // deselect previous
+    document.querySelectorAll('#matchImages > div').forEach(d => d.style.borderColor = 'transparent');
+    const divs = document.querySelectorAll('#matchImages > div');
+    divs[i].style.borderColor = '#ffc107';
+    matchSelected = i;
+}
+
+function selectMatchName(i) {
+    if (matchDone || matchSelected < 0) return;
+    const imgWord = matchItems[matchSelected].word;
+    const nameWord = matchNames[i];
+    const imgDivs = document.querySelectorAll('#matchImages > div');
+    const nameDivs = document.querySelectorAll('#matchNames > div');
+    if (imgWord === nameWord) {
+        // correct
+        imgDivs[matchSelected].style.borderColor = '#4caf50';
+        imgDivs[matchSelected].style.background = '#e8f5e9';
+        nameDivs[i].style.background = '#4caf50';
+        imgDivs[matchSelected].style.pointerEvents = 'none';
+        nameDivs[i].style.pointerEvents = 'none';
+        matchScore += 10;
+        document.getElementById('matchScore').textContent = '⭐ ' + matchScore;
+        playSound('correct', 'أحسنت!');
+        matchSelected = -1;
+        // check if all done
+        let matchedCount = 0;
+        document.querySelectorAll('#matchImages > div').forEach(d => {
+            if (d.style.pointerEvents === 'none') matchedCount++;
+        });
+        if (matchedCount === matchItems.length) {
+            matchDone = true;
+            addScore('ربط الأسماء', matchScore);
+            playSound('done');
+            setTimeout(() => alert('مبروك! أكملت جميع الأزواج! ⭐ ' + matchScore), 500);
+        }
+    } else {
+        // wrong
+        nameDivs[i].style.background = '#f44336';
+        playSound('wrong', 'حاول مرة أخرى');
+        setTimeout(() => { nameDivs[i].style.background = '#2196f3'; }, 600);
+        matchSelected = -1;
+        document.querySelectorAll('#matchImages > div').forEach(d => d.style.borderColor = 'transparent');
+    }
+}
+
+// ====== Videos ======
+function loadVideoList() {
+    const select = document.getElementById('videoSelect');
+    select.innerHTML = '';
+    // Videos are loaded from video_list.js (auto-generated)
+    if (typeof videos !== 'undefined' && videos.length > 0) {
+        videos.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            select.appendChild(opt);
+        });
+    } else {
+        // Fallback: try common video names
+        const fallback = ['فيديو الحروف', 'فيديو الحيوانات'];
+        fallback.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            select.appendChild(opt);
+        });
+    }
+}
+
+function playVideo() {
+    const select = document.getElementById('videoSelect');
+    const name = select.value;
+    const player = document.getElementById('videoPlayer');
+    // URL-encode the filename for Arabic characters
+    const encodedName = encodeURIComponent(name);
+    player.src = 'video/' + encodedName + '.mp4';
+    player.play().catch(e => {
+        // Try without encoding
+        player.src = 'video/' + name + '.mp4';
+        player.play().catch(e2 => {
+            alert('تعذر تشغيل الفيديو: ' + e2.message);
+        });
+    });
+}
+
+function stopVideo() {
+    const player = document.getElementById('videoPlayer');
+    if (player) {
+        player.pause();
+        player.currentTime = 0;
+        player.src = '';
+    }
+}
+
+// ====== Helpers ======
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function buildChoices(arr, correct, total) {
+    const others = shuffle(arr.filter(x => x.name !== correct.name || x.word !== correct.word)).slice(0, total - 1);
+    return shuffle([correct, ...others]);
+}
+
+function speak(text) {
+    if ('speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ar-SA';
+        u.rate = 0.9;
+        speechSynthesis.speak(u);
+    }
+}
+
+// ====== Init ======
+document.addEventListener('DOMContentLoaded', () => {
+    // Play welcome sound on page open
+    const welcomeAudio = new Audio('Sounds/' + (isGirl() ? 'f_Wellcome.wav' : 'b_Wellcom_Herroes.wav'));
+    welcomeAudio.play().catch(() => {});
+    showLetter(0);
+    selectAnimalCategory('حيوانات');
+    selectSurah(0);
+    showNumber(1);
+    selectColorMode('colors');
+    startMemory();
+    startMatch();
+    updateScores();
+});
+</script>
+</body>
+</html>
